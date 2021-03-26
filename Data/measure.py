@@ -3,7 +3,7 @@ import serial
 while True:
     y_coordinate = float(input("Podaj współrzędną y:"))
     x_coordinate = float(input("Podaj współrzędną x:"))
-    f = open('standarized/' + (str(y_coordinate) + '_' + str(x_coordinate) + '.txt'), "w+")
+    f = open('series2/' + (str(y_coordinate) + '_' + str(x_coordinate) + '.txt'), "w+")
     numerator = 0 
     arduino = serial.Serial('COM4', 9600)
     while (numerator < 1000):
