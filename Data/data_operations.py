@@ -1,7 +1,7 @@
 import os
 import csv
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def control(reading):
     return min(reading, 50)
@@ -23,7 +23,7 @@ def get_dictionary(directory):
     for filename in os.listdir(directory):
         dictionary[str(filename[:-4])] = numerator
         numerator += 1
-    return dictionary
+    return sort_dictionary(dictionary)
 
 
 def get_measurement(directory, measurement, data_dictionary, encode):
@@ -63,3 +63,57 @@ def split_into_classes(data, data_dictionary, decode):
     for row in data:
         class_vector[decode(row[1])-1].append(row)
     return class_vector
+
+
+def sort_dictionary(dictionary):
+    y_axis = []
+    x_axis = []
+    for element in dictionary.keys():
+        y, x = element.split('_')
+        if float(y) not in y_axis:
+            y_axis.append(float(y))
+        if float(x) not in x_axis:
+            x_axis.append(float(x))
+    x_axis.sort()
+    y_axis.sort()
+    y_axis.reverse()
+    numerator = 1
+    new_dictionary = {}
+    for y in y_axis:
+        for x in x_axis:
+            new_dictionary[str(y) + "_" + str(x)] = numerator
+            numerator += 1
+    return new_dictionary
+
+
+def get_dictionary_axes(dictionary):
+    y_axis = []
+    x_axis = []
+    for element in dictionary.keys():
+        y, x = element.split('_')
+        if float(y) not in y_axis:
+            y_axis.append(float(y))
+        if float(x) not in x_axis:
+            x_axis.append(float(x))
+    return x_axis, y_axis
+
+
+def test(class_vector, predict, predict_params):
+    classification_array = np.zeros((len(class_vector), len(class_vector)))
+    for class_index in range(len(class_vector)):
+        for element in class_vector[class_index]:
+            classification_array[class_index][predict(element[0], *predict_params)-1] += 1
+    return classification_array
+
+
+def create_heatmap(class_name, data_dictionary, classification_array):
+    fig, ax = plt.subplots()
+    x_axis, y_axis = get_dictionary_axes(data_dictionary)
+    im = ax.imshow(classification_array[data_dictionary[class_name]-1].reshape(len(y_axis), len(x_axis)))
+    ax.set_xticks(np.arange(len(x_axis)))
+    ax.set_yticks(np.arange(len(y_axis)))
+    ax.set_xticklabels(x_axis)
+    ax.set_yticklabels(y_axis)
+    cbar = ax.figure.colorbar(im, ax=ax)
+    cbar.ax.set_ylabel("", rotation=-90, va="bottom")
+    ax.set_title(class_name)
