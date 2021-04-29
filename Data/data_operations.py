@@ -6,10 +6,12 @@ import numpy as np
 def control(reading):
     return min(reading, 50)
 
+
 def encode(number, data_dictionary):
     vector = -np.ones(len(data_dictionary))
     vector[number-1] = 1
     return vector
+
 
 def decode(vector):
     return np.argmax(vector) + 1
@@ -61,7 +63,3 @@ def split_into_classes(data, data_dictionary, decode):
     for row in data:
         class_vector[decode(row[1])-1].append(row)
     return class_vector
-
-
-
-# data, data_dictionary = get_data("series3", encode)
