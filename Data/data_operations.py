@@ -107,7 +107,22 @@ def test(class_vector, predict, predict_params):
     return classification_array
 
 
-def create_classification_heatmap(class_name, data_dictionary, classification_array, inverse=False):
+def create_classification_heatmap(classification_array, data_dictionary):
+    fig, ax = plt.subplots()
+    fig.set_figheight(fig.get_figheight() * 4)
+    fig.set_figwidth(fig.get_figwidth() * 4)
+    ax.imshow(classification_array)
+    ax.set_xticks(np.arange(len(data_dictionary)))
+    ax.set_yticks(np.arange(len(data_dictionary)))
+    ax.set_xticklabels(data_dictionary)
+    ax.set_yticklabels(data_dictionary)
+    for i in range(len(data_dictionary)):
+        for j in range(len(data_dictionary)):
+            ax.text(j, i, classification_array[i, j],
+                    ha="center", va="center", color="w")
+
+
+def create_class_heatmap(class_name, data_dictionary, classification_array, inverse=False):
     """
     dla inverse = True, pokazuje do jakich klas został zakwalifikowany obiekt klasy tytułowej
     dla inverse = False, pokazuje jakie klasy zostały zakwalifikowane jako obiekt klasy tytułowej
@@ -121,7 +136,8 @@ def create_classification_heatmap(class_name, data_dictionary, classification_ar
 def create_heatmap(class_name, data_dictionary, data_array):
     fig, ax = plt.subplots()
     x_axis, y_axis = get_dictionary_axes(data_dictionary)
-    im = ax.imshow(data_array.reshape(len(y_axis), len(x_axis)))
+    data_array_reshaped = data_array.reshape(len(y_axis), len(x_axis))
+    im = ax.imshow(data_array_reshaped)
     ax.set_xticks(np.arange(len(x_axis)))
     ax.set_yticks(np.arange(len(y_axis)))
     ax.set_xticklabels(x_axis)
@@ -129,3 +145,32 @@ def create_heatmap(class_name, data_dictionary, data_array):
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.set_ylabel("", rotation=-90, va="bottom")
     ax.set_title(class_name)
+    for i in range(len(y_axis)):
+        for j in range(len(x_axis)):
+            ax.text(j, i, data_array_reshaped[i, j],
+                    ha="center", va="center", color="w")
+
+
+def calculate_recall(classification_array):
+    """
+    Recall is the percentage of all cat images in the dev (or test) set that it correctly
+    labeled as a cat.(definition from Machine Learning Yearning by Andrew NG)
+    """
+    recall_list = np.zeros(15)
+    for class_index in range(len(classification_array)):
+        recall_list[class_index] = classification_array[class_index][class_index]/classification_array[class_index].sum()
+    return recall_list
+
+
+def calculate_precision(classification_array):
+    """
+    Precision  is the fraction of images in the dev (or test) set it labeled as cats that
+    really are cats.(definition from Machine Learning Yearning by Andrew NG)
+    """
+    precision_list = np.zeros(15)
+    for class_index in range(len(classification_array)):
+        if classification_array[:, class_index].sum() == 0:
+            precision_list[class_index] = -100
+        else:
+            precision_list[class_index] = 100*classification_array[:, class_index][class_index]/classification_array[:, class_index].sum()
+    return precision_list
