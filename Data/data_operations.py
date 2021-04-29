@@ -107,17 +107,21 @@ def test(class_vector, predict, predict_params):
     return classification_array
 
 
-def create_heatmap(class_name, data_dictionary, classification_array, inverse=False):
+def create_classification_heatmap(class_name, data_dictionary, classification_array, inverse=False):
     """
     dla inverse = True, pokazuje do jakich klas został zakwalifikowany obiekt klasy tytułowej
     dla inverse = False, pokazuje jakie klasy zostały zakwalifikowane jako obiekt klasy tytułowej
     """
+    if not inverse:
+        create_heatmap(class_name, data_dictionary, classification_array[data_dictionary[class_name]-1])
+    else:
+        create_heatmap(class_name, data_dictionary, classification_array[:, data_dictionary[class_name]-1])
+
+
+def create_heatmap(class_name, data_dictionary, data_array):
     fig, ax = plt.subplots()
     x_axis, y_axis = get_dictionary_axes(data_dictionary)
-    if not inverse:
-        im = ax.imshow(classification_array[data_dictionary[class_name]-1].reshape(len(y_axis), len(x_axis)))
-    else:
-        im = ax.imshow(classification_array[:, data_dictionary[class_name]-1].reshape(len(y_axis), len(x_axis)))
+    im = ax.imshow(data_array.reshape(len(y_axis), len(x_axis)))
     ax.set_xticks(np.arange(len(x_axis)))
     ax.set_yticks(np.arange(len(y_axis)))
     ax.set_xticklabels(x_axis)
