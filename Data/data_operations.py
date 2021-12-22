@@ -42,12 +42,34 @@ def get_measurement(directory, measurement, data_dictionary, encode):
     return sample_data
 
 
-def get_data(directory, encode):
+def get_data(directory, encode, **kwargs):
     data_dictionary = get_dictionary(directory)
     data = []
+    if 'column' in kwargs.keys():
+        data_dictionary = filter_dictionary_column(kwargs['column'], data_dictionary)
+        data_dictionary = sort_dictionary(data_dictionary)
+    if 'row' in kwargs.keys():
+        data_dictionary = filter_dictionary_row(kwargs['row'], data_dictionary)
+        data_dictionary = sort_dictionary(data_dictionary)
     for measurement in data_dictionary:
         data += get_measurement(directory, measurement, data_dictionary, encode)
     return data, data_dictionary
+
+
+def filter_dictionary_column(column, dictionary):
+    new_dictionary = {}
+    for key, value in dictionary.items():
+        if float(key.split('_')[1]) == column:
+            new_dictionary[key] = value
+    return new_dictionary
+
+
+def filter_dictionary_row(row, dictionary):
+    new_dictionary = {}
+    for key, value in dictionary.items():
+        if float(key.split('_')[0]) == row:
+            new_dictionary[key] = value
+    return new_dictionary
 
 
 def split_into_sets(train_test_ratio, data):
@@ -102,8 +124,12 @@ def get_dictionary_axes(dictionary):
 def test(class_vector, predict, predict_params):
     classification_array = np.zeros((len(class_vector), len(class_vector)))
     for class_index in range(len(class_vector)):
+        print(class_index)
+        numerator = 0
         for element in class_vector[class_index]:
+            print(numerator)
             classification_array[class_index][predict(element[0], *predict_params)-1] += 1
+            numerator = numerator + 1
     return classification_array
 
 
@@ -147,7 +173,7 @@ def create_heatmap(class_name, data_dictionary, data_array):
     ax.set_title(class_name)
     for i in range(len(y_axis)):
         for j in range(len(x_axis)):
-            ax.text(j, i, data_array_reshaped[i, j],
+            ax.text(j, i, f"{data_array_reshaped[i, j]:.03f}",
                     ha="center", va="center", color="w")
 
 
@@ -156,9 +182,9 @@ def calculate_recall(classification_array):
     Recall is the percentage of all cat images in the dev (or test) set that it correctly
     labeled as a cat.(definition from Machine Learning Yearning by Andrew NG)
     """
-    recall_list = np.zeros(15)
+    recall_list = np.zeros(len(classification_array))
     for class_index in range(len(classification_array)):
-        recall_list[class_index] = classification_array[class_index][class_index]/classification_array[class_index].sum()
+        recall_list[class_index] = 100*classification_array[class_index][class_index]/classification_array[class_index].sum()
     return recall_list
 
 
@@ -167,7 +193,7 @@ def calculate_precision(classification_array):
     Precision  is the fraction of images in the dev (or test) set it labeled as cats that
     really are cats.(definition from Machine Learning Yearning by Andrew NG)
     """
-    precision_list = np.zeros(15)
+    precision_list = np.zeros(len(classification_array))
     for class_index in range(len(classification_array)):
         if classification_array[:, class_index].sum() == 0:
             precision_list[class_index] = -100
